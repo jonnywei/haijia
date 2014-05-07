@@ -90,20 +90,24 @@ public class HaijiaNetMain
           
             long startTime = System.currentTimeMillis();
             
-            YueCheInfo  ycInfo = new YueCheInfo();
+            YueCheInfo  ycInfo = new YueCheInfo(null, date);
             
             //初始化线程池的数目
             ExecutorService executeService = Executors.newFixedThreadPool(2 + ycInfo.getYueCheInfo().size() * YueCheHelper.getProxyNumPreUser());
-            
+
+            boolean isUseProxy = YueCheHelper.isUseProxy();
             for (Integer accoutId: ycInfo.getYueCheInfo().keySet()){
-                XueYuanAccount  xy = ycInfo.getYueCheInfo().get(accoutId);
+                YueCheItem  xy = ycInfo.getYueCheInfo().get(accoutId);
                 if ( xy!=null){
-                	int threadPerUserNum = 
-                		YueCheHelper.isUseProxy()? YueCheHelper.getProxyNumPreUser(): YueCheHelper.getThreadPerUser();
+                	int threadPerUserNum = isUseProxy ? YueCheHelper.getProxyNumPreUser(): YueCheHelper.getThreadPerUser();
                     
                 	for ( int num = 0 ; num < threadPerUserNum; num++){
-                            YueCheTask yueCheTask = new YueCheTask(xy,date);
-                            resultList.add(executeService.submit(yueCheTask) );     
+                        Host proxyHost = null;
+                         if (isUseProxy ){
+                              proxyHost = ConfigHttpProxy.getInstance().getRandomHost();
+                         }
+                         YueCheTask yueCheTask = new YueCheTask(xy,date,proxyHost);
+                         resultList.add(executeService.submit(yueCheTask) );
                        
                     } 
                  }

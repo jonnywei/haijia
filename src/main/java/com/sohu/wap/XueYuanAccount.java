@@ -6,235 +6,154 @@
  */
 package com.sohu.wap;
 
+import com.sohu.wap.core.Constants;
 import org.json.JSONObject;
 
-import com.sohu.wap.core.Constants;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
+ *
  * @author jianjunwei
  *
  */
 public class XueYuanAccount {
-	
-	
-	 //1开始
+
+
+    //1开始
     public static int BOOK_CAR_NOT_SET = -1;
-	
-	public static int BOOK_CAR_SUCCESS = 0;
-	
-	public static int BOOK_CAR_ALREADY_BOOKED_CAR=1;
-	
-	public static int BOOK_CAR_KEMU2_NO_TIME = 2;
-	
+
+    public static int BOOK_CAR_SUCCESS = 0;
+
+    public static int BOOK_CAR_ALREADY_BOOKED_CAR=1;
+
+    public static int BOOK_CAR_KEMU2_NO_TIME = 2;
+
     public static int BOOK_CAR_NOT_BOOK_WEEKEND_CAR= 3;
-   
+
     public static int BOOK_CAR_NO_CAR =4;
-    
+
     public static int BOOK_CAR_NO_FAIL =5;
-   
+
     public static int BOOK_CAR_ERROR = 6;
-    
+
     public static int BOOK_CAR_ACCOUNT_ERROR = 7;
-    
-	public static int BOOK_CAR_PHONE_NUM_ERROR=8;
-	private int id;
-    
+
+    public static int BOOK_CAR_PHONE_NUM_ERROR=8;
+
+    public static int BOOK_CAR_CAR_TYPE_ERROR=9;
+    private int id;
+
     private String userName;
-    
-    private String password;
-    
-    private String carType;
-    
-    private String yueCheDate;
-    
-    private String amPm;
-    
-    private String whiteCar;
-    
-    private String blackCar;
-    
-    private String km ="km2";
-    
-    private int ycResult;
-    
-    private String ycResultInfo;
-    
-    private String phoneNum; //海驾预留的手机或者电话号码
-    private boolean isBookSuccess = false;
-    
-//  [
-//  {
-//      "pk": 1,
-//      "model": "yueche.yueche",
-//      "fields": {
-//          "car_type": "als",
-//          "yc_date": "2012-12-25",
-//          "black_car": "",
-//          "passwd": "23456789",
-//          "id_num": "234567890-",
-//          "xue_yuan": 1,
-//          "yc_info": "",
-//          "white_car": "",
-//          "yc_km": "km2",
-//          "yc_result": null,
-//          "phone_num": "",
-//          "create_date": "2012-12-18T15:09:51Z",
-//          "yc_time": "am",
-//          "update_date": "2012-12-18T15:17:29Z",
-//          "reserve": ""
-//      }
-//  }
-//]
- 
-    public static  XueYuanAccount jsonToXueYuanAccount(JSONObject json){
-    	
-    	XueYuanAccount yc= new XueYuanAccount();
-    	
-    	yc.setId(json.optInt("pk"));
-    	JSONObject field = json.optJSONObject("fields");
-    	yc.setUserName(field.optString("id_num").trim().toUpperCase());
-    	yc.setPassword(field.optString("passwd").trim());
-    	yc.setKm(field.optString("yc_km",Constants.KM2));
-    	yc.setYueCheDate(field.optString("yc_date").replace("-", ""));
-    	yc.setAmPm(field.optString("yc_time"));
-    	yc.setCarType(field.optString("car_type"));
-    	yc.setWhiteCar(field.optString("white_car"));  
-    	yc.setBlackCar(field.optString("black_car"));
-    	if(field.isNull("yc_result")){
-    		yc.setYcResult(BOOK_CAR_NOT_SET);
-    	}else{
-    		yc.setYcResult(field.optInt("yc_result"));
-    	}
-    	yc.setYcResultInfo(field.optString("yc_info"));
-    	yc.setPhoneNum(field.optString("phone_num", "").trim()); 
-    	return yc;
-    }
-    
-    @Override
-	public String toString() {
-		return "XueYuanAccount [amPm=" + amPm + ", blackCar=" + blackCar
-				+ ", carType=" + carType + ", id=" + id + ", isBookSuccess="
-				+ isBookSuccess + ", km=" + km + ", password=" + password
-				+ ", phoneNum=" + phoneNum + ", userName=" + userName
-				+ ", whiteCar=" + whiteCar + ", ycResult=" + ycResult
-				+ ", ycResultInfo=" + ycResultInfo + ", yueCheDate="
-				+ yueCheDate + "]";
-	}
-    
-    /**
-     * @return the id
-     */
+
     public int getId() {
         return id;
     }
-    /**
-     * @param id the id to set
-     */
+
     public void setId(int id) {
         this.id = id;
     }
-    /**
-     * @return the userName
-     */
+
     public String getUserName() {
         return userName;
     }
-    /**
-     * @param userName the userName to set
-     */
+
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    /**
-     * @return the password
-     */
+
     public String getPassword() {
         return password;
     }
-    /**
-     * @param password the password to set
-     */
+
     public void setPassword(String password) {
         this.password = password;
     }
-    /**
-     * @return the isBookSuccess
-     */
-    public boolean isBookSuccess() {
-        return isBookSuccess;
+
+    public String getCarType() {
+        return carType;
     }
-    /**
-     * @param isBookSuccess the isBookSuccess to set
-     */
-    public void setBookSuccess(boolean isBookSuccess) {
-        this.isBookSuccess = isBookSuccess;
+
+    public void setCarType(String carType) {
+        this.carType = carType;
     }
-	public String getCarType() {
-		return carType;
-	}
-	public void setCarType(String carType) {
-		this.carType = carType;
-	}
-	public String getYueCheDate() {
-		return yueCheDate;
-	}
-	public void setYueCheDate(String yueCheDate) {
-		this.yueCheDate = yueCheDate;
-	}
-	public String getYueCheAmPm() {
-		return amPm;
-	}
-	public void setYueCheAmPm(String amPm) {
-		this.amPm = amPm;
-	}
-    /**
-     * @param whiteCar the whiteCar to set
-     */
-    public void setWhiteCar(String whiteCar) {
-        this.whiteCar = whiteCar;
+
+
+    public String getPhoneNum() {
+        return phoneNum;
     }
-    /**
-     * @return the whiteCar
-     */
-    public String getWhiteCar() {
-        return whiteCar;
+
+    public void setPhoneNum(String phoneNum) {
+        this.phoneNum = phoneNum;
     }
-	public String getAmPm() {
-		return amPm;
-	}
-	public void setAmPm(String amPm) {
-		this.amPm = amPm;
-	}
-	public String getKm() {
-		return km;
-	}
-	public void setKm(String km) {
-		this.km = km;
-	}
-	
-	public String getBlackCar() {
-		return blackCar;
-	}
-	public void setBlackCar(String blackCar) {
-		this.blackCar = blackCar;
-	}
-	public int getYcResult() {
-		return ycResult;
-	}
-	public void setYcResult(int ycResult) {
-		this.ycResult = ycResult;
-	}
-	public String getYcResultInfo() {
-		return ycResultInfo;
-	}
-	public void setYcResultInfo(String ycResultInfo) {
-		this.ycResultInfo = ycResultInfo;
-	}
-	public String getPhoneNum() {
-		return phoneNum;
-	}
-	public void setPhoneNum(String phoneNum) {
-		this.phoneNum = phoneNum;
-	}
+
+    public List<YueCheItem> getYueCheItemList() {
+        return yueCheItemList;
+    }
+
+    public void setYueCheItemList(List<YueCheItem> yueCheItemList) {
+        this.yueCheItemList = yueCheItemList;
+    }
+
+    public void addYueCheItem(YueCheItem yueCheItem){
+        this.yueCheItemList.add(yueCheItem);
+    }
+    private String password;
+
+    private String carType;
+
+
+    private String phoneNum; //海驾预留的手机或者电话号码
+
+    List<YueCheItem>  yueCheItemList  = new ArrayList<YueCheItem>();
+
+
+
+
+
+
+    //    {
+//        "pk": 1,
+//            "model": "yueche.xueyuan",
+//            "fields": {
+//        "car_type": "byd",
+//                "phone_num": "18811415862",
+//                "name": "徐红敏",
+//                "update_date": "2014-04-28T14:43:42Z",
+//                "passwd": "33333333333333",
+//                "id_num": "410923198702113103",
+//                "create_date": "2014-04-28T13:38:03Z",
+//                "ding_dan": 1,
+//                "jia_xiao": "haijia",
+//                "reserve": ""
+//    }
+//    }
+    public static XueYuanAccount jsonToXueYuanAccount(JSONObject json){
+
+        XueYuanAccount yc= new XueYuanAccount();
+
+        yc.setId(json.optInt("pk"));
+        JSONObject field = json.optJSONObject("fields");
+        yc.setUserName(field.optString("id_num").trim().toUpperCase());
+        yc.setPassword(field.optString("passwd").trim());
+        yc.setCarType(field.optString("car_type"));
+        yc.setPhoneNum(field.optString("phone_num", "").trim());
+
+        return yc;
+    }
+
+
+    @Override
+    public String toString() {
+        return "XueYuanAccount{" +
+                "id=" + id +
+                ", userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", carType='" + carType + '\'' +
+                ", phoneNum='" + phoneNum + '\'' +
+                ", yueCheItemList=" + yueCheItemList +
+                '}';
+    }
+
+
 }

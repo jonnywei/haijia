@@ -115,9 +115,7 @@ public class DateUtil
     /**
      * 根据分钟得到当天的时间 24小时制
      * @author jianjunwei
-     * @param startHourMin 开始的小时和分钟
-     * @param  endHourMin  结束的小时和分钟
-     * @return 
+     * @return
      */
     public static  Date getTodayTime(String hourMin){
         
@@ -188,8 +186,28 @@ public class DateUtil
         }
         return   new Date();
     }
-    
-    
+
+
+    /**
+     * 得到含有折线的日期
+     * @param dstr
+     * @return
+     */
+    public static String getDashDate(String dstr){
+
+        SimpleDateFormat df =new SimpleDateFormat("yyyyMMdd" );
+        SimpleDateFormat df2 =new SimpleDateFormat("yyyy-MM-dd" );
+        try {
+            Date time =   df.parse(dstr);
+
+            return    df2.format(time);
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return  null;
+    }
+
     public static void main (String[] args){
         System.out.println(getSATURDAYDay());
         System.out.println( isCurrTimeInTimeInterval("07:35","18:00"));

@@ -4,6 +4,11 @@ baseDirForScriptSelf=$(cd "$(dirname "$0")"; pwd)
 TWITTER_HOME=`dirname $baseDirForScriptSelf`
 TWITTER_LOG_HOME=/home/wjj/log
 
+isUserScan=$1
+Main_Class="com.sohu.wap.HaijiaNetMain"
+if [  $1 =='scan' ]  then
+    Main_Class="com.sohu.wap.HaijiaNetScanner"
+fi
 #export LANG=zh_CN.GBK
 #export JAVA_HOME=/usr/local/jdk
 #export PATH=$JAVA_HOME/bin:$PATH

@@ -51,11 +51,11 @@ public class HaijiaScanner
     	
     	List <ScanYueCheTask> list = new ArrayList<ScanYueCheTask>();
     	for (String accoutId: AccountMap.getInstance().getScanXueYuanAccountMap().keySet()){
-            XueYuanAccount  xy =AccountMap.getInstance().getScanXueYuanAccountMap().get(accoutId);
+            YueCheItem  xy =AccountMap.getInstance().getScanXueYuanAccountMap().get(accoutId);
             if ( xy!=null){
             	
-            	ScanYueCheTask yueCheTask = new ScanYueCheTask(xy);
-            	list.add(yueCheTask);
+//            	ScanYueCheTask yueCheTask = new ScanYueCheTask(xy,null);
+//            	list.add(yueCheTask);
             }
           
         }
@@ -66,7 +66,7 @@ public class HaijiaScanner
             	
             	for (ScanYueCheTask yueCheTask: list){
                     try{
-                    	yueCheTask.scan();
+//                    	yueCheTask.scan();
               
                     }catch(Exception ex){
                     	log.error("exception",ex);

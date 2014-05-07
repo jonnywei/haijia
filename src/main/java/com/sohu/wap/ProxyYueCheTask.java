@@ -16,11 +16,11 @@
 //
 //	protected static Logger log = LoggerFactory.getLogger(ProxyYueCheTask.class);
 //	
-//	XueYuanAccount xueYuan;
+//	XueYuanAccount yueCheItem;
 //	
 //	String date;
 //	
-//	public ProxyYueCheTask(XueYuanAccount xueYuan, String date){
+//	public ProxyYueCheTask(XueYuanAccount yueCheItem, String date){
 //	  
 //
 //	    if (YueCheHelper.isUseProxy()){
@@ -29,17 +29,17 @@
 //	    		 httpUtil4 = HttpUtil4Exposer.createHttpClient();
 //	    }
 //	
-//		this.xueYuan = xueYuan;
+//		this.yueCheItem = yueCheItem;
 //		this.date = date; 
 //	}
 //	
 //	@Override
 //	public Integer call() throws Exception {
 //	    
-//		 YueCheHelper.waiting(xueYuan.getCarType());
+//		 YueCheHelper.waiting(yueCheItem.getCarType());
 //		 doLogin();
 //         doYuche();
-//         if (xueYuan.isBookSuccess()){
+//         if (yueCheItem.isBookSuccess()){
 //        	 return Integer.valueOf(0);
 //         }
 //         return Integer.valueOf(1);
@@ -57,7 +57,7 @@
 //                 first = false;
 //             }
 //             
-//             isLogin =  login(xueYuan.getUserName() , xueYuan.getPassword());
+//             isLogin =  login(yueCheItem.getUserName() , yueCheItem.getPassword());
 //            
 //       }while (!isLogin);
 //        log.info("login success!");
@@ -70,7 +70,7 @@
 //     */
 //    private  void  doYuche () throws InterruptedException {
 //    
-//    	String[] timeArray = xueYuan.getYueCheAmPm().split("[,;]");
+//    	String[] timeArray = yueCheItem.getYueCheAmPm().split("[,;]");
 //        if (timeArray.length  <  0) {
 //        	timeArray = YueCheHelper.YUCHE_TIME.split("[,;]");
 //        }
@@ -90,17 +90,17 @@
 //              int  result  = ret.getRet();
 //              if (result == YueChe.BOOK_CAR_SUCCESS){
 //                  isSuccess = true;
-//                  String info = xueYuan.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+"约车成功";
+//                  String info = yueCheItem.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+"约车成功";
 //                  System.out.println(info);
 //                  log.info(info);
-//                  xueYuan.setBookSuccess(isSuccess);
+//                  yueCheItem.setBookSuccess(isSuccess);
 //              }else if (result == YueChe.NO_CAR){  //无车
 //                  System.out.println(date + YueCheHelper.AMPM.get(amPm)+"无车!");
 //                  break;
 //              }else if (result == YueChe.GET_CAR_ERROR){  //无车
 //                  System.out.println("得到车辆信息错误！重试！");
 //              }else if (result == YueChe.ALREADY_BOOKED_CAR){  //无车
-//            	  String info = xueYuan.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+
+//            	  String info = yueCheItem.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+
 //            	  "该日已经预约车辆。不能在约车了！";
 //            	  log.info(info);
 //                  System.out.println(info);

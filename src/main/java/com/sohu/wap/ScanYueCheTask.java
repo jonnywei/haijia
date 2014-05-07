@@ -1,7 +1,9 @@
 package com.sohu.wap;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.sohu.wap.bo.DayCarInfo;
 import com.sohu.wap.bo.Result;
 import com.sohu.wap.core.Constants;
 import com.sohu.wap.http.HttpUtil4Exposer;
@@ -18,34 +20,49 @@ public class ScanYueCheTask extends YueCheTask {
 	
 	boolean isLogon = false;
 	long  lastLoginTime = 0;
+
+    private XueYuanAccount xueYuanAccount;
 	
-	public ScanYueCheTask(XueYuanAccount xueYuan) {
+	public ScanYueCheTask(XueYuanAccount xueYuan, Host host) {
 	    
 	    super();
-	    
-        if (YueCheHelper.isScanUseProxy()){
-                 Host host = ConfigHttpProxy.getInstance().getRandomHost();
-                
+
+        if (host != null ){
                  httpUtil4 = HttpUtil4Exposer.createHttpClient(host.getIp(),host.getPort());
         }else{
                  httpUtil4 = HttpUtil4Exposer.createHttpClient();
         }
-    
-        this.xueYuan = xueYuan;
-        this.date = xueYuan.getYueCheDate(); 
-        log.info(this.xueYuan.getUserName()+" init thread");
+
+        this.xueYuanAccount = xueYuan;
+
+        log.info(this.xueYuanAccount.getUserName()+" init thread");
  
 	}
 	
 	@Override
 	public Integer call()  throws Exception {
-	    log.info(this.xueYuan.getUserName()+"  yueche thread start!");
+	    log.info(this.xueYuanAccount.getUserName()+"  yueche thread start!");
 		 try {
-//            YueCheHelper.waiting(xueYuan.getCarType());
-            
-			scan();
-            if (xueYuan.isBookSuccess()){
-                return Integer.valueOf(0);
+//            YueCheHelper.waiting(yueCheItem.getCarType());
+
+             int loginResult = doLogin();
+
+             if ( loginResult == 0 ){
+                 System.out.println(xueYuanAccount.getUserName());
+
+                 for (YueCheItem yueCheItem : xueYuanAccount.getYueCheItemList()){  // 约考短路
+                      if (isYueKao(yueCheItem))  {
+                         return scanYueKao(yueCheItem);
+                      }
+                 }
+                 scanYueChe();
+
+             } else if ( loginResult == 3 ) {
+                 String info ="accountError:"+ xueYuanAccount.getUserName()+","+ xueYuanAccount.getPassword();
+                 log.error(info);
+                 for (YueCheItem yueCheItem : xueYuanAccount.getYueCheItemList()){
+                     YueCheHelper.updateYueCheBookInfo(yueCheItem.getId(), YueCheItem.BOOK_CAR_ACCOUNT_ERROR, info);
+                 }
              }
             
         } catch (InterruptedException e) {
@@ -56,24 +73,9 @@ public class ScanYueCheTask extends YueCheTask {
         
 	}
 
-	/**
-	 * 
-	 * 扫描程序，进行扫描操作
-	 * @throws InterruptedException 
-	 * 
-	 * 
-	 */
-	public int scan () throws InterruptedException{
-		if (isYueKao())
-			return scanYueKao();
-		else{
-			return scanYueChe();
-		}
-        		
-	}
 
-	private boolean isYueKao(){
-		if ( xueYuan.getKm() != null &&  xueYuan.getKm().startsWith("ks"))
+	private boolean isYueKao(YueCheItem yueCheItem){
+		if ( yueCheItem.getKm() != null &&  yueCheItem.getKm().startsWith("ks"))
 			return true;
 		return false;
 	}
@@ -84,54 +86,119 @@ public class ScanYueCheTask extends YueCheTask {
 	 * 
 	 */
 	public int scanYueChe() throws InterruptedException{
-		
-		doLogin () ;
-		System.out.println(xueYuan.getUserName());
-		Result<String> result = canYueChe(xueYuan.getYueCheDate());
-		
-		int yueCheInfo = result.getRet();
-		
-		if (yueCheInfo == 0){
-			doYueche(result.getData(), Constants.AM_STR);
-		} else if (yueCheInfo == 1){
-			doYueche(result.getData(),Constants.PM_STR);
-			
-		}else if (yueCheInfo == 2){
-			doYueche(result.getData(),Constants.NI_STR);
-		}else if (yueCheInfo == 3){
-			return ALREADY_YUECHE;
-			
-		}else if (yueCheInfo == 4){
-		
-		}else if (yueCheInfo == 5){
-			isLogon =false;
-		}else if (yueCheInfo == 6){
-			log.info("canYueChe InternalServerError");
-		}
-		
-		if (xueYuan.isBookSuccess()){
-			return SCAN_YUECHE_SUCCESS;
-		}
-		return NO_CAR;
+
+        Result<Map<String, DayCarInfo>>  availableCarInfoResult  = getAvailableCarInfo();
+        if (availableCarInfoResult.getRet() != 0 ){
+            return 1;
+        }
+
+
+        for (YueCheItem yueCheItem : xueYuanAccount.getYueCheItemList()){
+            Result<String> result = canYueChe(yueCheItem, availableCarInfoResult.getData());
+            int yueCheInfo = result.getRet();
+
+            if (yueCheInfo == 0){
+                doYueche(yueCheItem, result.getData(), Constants.AM_STR);
+            } else if (yueCheInfo == 1){
+                doYueche(yueCheItem, result.getData(),Constants.PM_STR);
+
+            }else if (yueCheInfo == 2){
+                doYueche(yueCheItem, result.getData(),Constants.NI_STR);
+            }else if (yueCheInfo == 3){
+                return ALREADY_YUECHE;
+
+            }else if (yueCheInfo == 4){
+
+            }else if (yueCheInfo == 5){
+                isLogon =false;
+            }else if (yueCheInfo == 6){
+                log.info("canYueChe InternalServerError");
+            }
+
+        }
+
+        return 0;
+
+//
+//
+//
+//
+//		if (yueCheItem.isBookSuccess()){
+//			return SCAN_YUECHE_SUCCESS;
+//		}
+//		return NO_CAR;
 	}
-	
-	
-	/**
+
+
+    /**
+     * 0 上午可以
+     * 1 下午可以
+     * 2 晚上可以
+     * 3 该日已经约车
+     * 4 无车
+     *
+     */
+    public Result<String>  canYueChe (YueCheItem yueCheItem , Map<String, DayCarInfo> yueCheCarInfoMap ){
+
+        Result<String>  ret = new Result<String>(4);
+
+        String yueCheDate = yueCheItem.getYueCheDate();
+        DayCarInfo ycCarInfo =  yueCheCarInfoMap.get(yueCheDate);
+        if (ycCarInfo != null){
+            String[] timeArray = yueCheItem.getAmPm().split("[,;]");
+            if (timeArray.length  <  0) {
+                timeArray = YueCheHelper.YUCHE_TIME.split("[,;]");
+            }
+            //如果今天已经约车了
+            if ( ycCarInfo.getCarInfo().get("am").equals("已约") ||  ycCarInfo.getCarInfo().get("pm").equals("已约") ||  ycCarInfo.getCarInfo().get("ni").equals("已约")){
+                ret.setRet(3);
+            }else {
+                for (String amPmStr : timeArray){  //按情况约车
+                    String info = ycCarInfo.getCarInfo().get(amPmStr);
+                    if (info.equals("无")){
+
+                    }else if (info.equals("已约")){
+                        ret.setRet(3);
+                    }else{
+                        ret.setData(yueCheDate); //设置约车日期
+                        if (Constants.AM_STR.equals(amPmStr)){
+                            ret.setRet(0);
+                            return ret;
+
+                        }else if (Constants.PM_STR.equals(amPmStr)){
+                            ret.setRet(1);
+                            return ret;
+                        }else{
+                            ret.setRet(2);
+                            return ret;
+                        }
+                    }
+                }
+            }
+
+        }
+        ret.setRet(4);
+        return ret;
+    }
+
+
+
+    /**
 	 * 科目考试
 	 * @throws InterruptedException 
 	 * 
 	 * 
 	 */
-	public int scanYueKao() throws InterruptedException{
+	public int scanYueKao(YueCheItem yueCheItem) throws InterruptedException{
 		
 		doLogin () ;
-		System.out.println(xueYuan.getUserName());
+		System.out.println(yueCheItem.getUserName());
 		
-		Result<String> result = canYueKao(xueYuan.getYueCheDate(),xueYuan.getYueCheAmPm(),xueYuan.getKm());
+		Result<String> result = canYueKao(yueCheItem.getYueCheDate(), yueCheItem.getYueCheAmPm(), yueCheItem.getKm());
 		
 		int yueCheInfo = result.getRet();
 		if (yueCheInfo == 0){
-			doYueKao( xueYuan.getKm());
+			doYueKao( yueCheItem.getKm());
 			
 		} else if (yueCheInfo == 1){
 			
@@ -144,14 +211,21 @@ public class ScanYueCheTask extends YueCheTask {
 		
 		}
 		
-		if (xueYuan.isBookSuccess()){
+		if (yueCheItem.isBookSuccess()){
 			return SCAN_YUECHE_SUCCESS;
 		}
 		return NO_CAR;
 	}
-	
-	
-	private  void  doLogin () throws InterruptedException {
+
+    /**
+     *
+     *0 登录成功
+     *1 登录失败
+     *2 已经约车成功
+     *3 账号密码错误
+     *3 无法进行下一步了
+     * */
+	private  int  doLogin () throws InterruptedException {
 		
 		long currentTime = System.currentTimeMillis();
 		
@@ -167,30 +241,33 @@ public class ScanYueCheTask extends YueCheTask {
 	             }else{
 	                 first = false;
 	             }
-	          int result =  login(xueYuan.getUserName() , xueYuan.getPassword());
+	          int result =  login(xueYuanAccount.getUserName() , xueYuanAccount.getPassword());
 	          if (result == YueChe.LONGIN_SUCCESS){
 	              isLoginSuccess =  true;
-	          }
+	          } else if( result == YueChe.LONGIN_ACCOUNT_ERROR ){
+
+                  return 3;
+              }
 	           
 	       }while (!isLoginSuccess);
 	        
 	        isLogon = true;
 	        lastLoginTime = System.currentTimeMillis();
-	        log.info(xueYuan.getUserName()+" login success!");
+	        log.info(xueYuanAccount.getUserName()+" login success!");
 		}else{
-	        log.info(xueYuan.getUserName()+" retain login status!");
+	        log.info(xueYuanAccount.getUserName()+" retain login status!");
 
 		}
+        return 0;
         
     }
-	
 	
     
     /**
      * @throws IOException 
      * 
      */
-    private  void  doYueche ( String date, String amPm ) throws InterruptedException {
+    private  void  doYueche (YueCheItem yueCheItem, String date, String amPm ) throws InterruptedException {
     
     	//按情况约车
         amPm = YueCheHelper.AMPM.get(amPm);
@@ -205,26 +282,26 @@ public class ScanYueCheTask extends YueCheTask {
              }
         
              Result<String> ret =  null;
-             if(Constants.KM3.equals(xueYuan.getKm())){
-            	 ret =  yuche(date, amPm,Constants.KM3_HiddenKM,xueYuan.getPhoneNum());
-             }else if (Constants.KM1.equals(xueYuan.getKm())){
-            	 ret =  yuche(date, amPm,Constants.KM1_HiddenKM,xueYuan.getPhoneNum());
-             }else if (Constants.KM_AUTO.equals(xueYuan.getKm())) {
-            	 ret =  yuche(date, amPm,0,xueYuan.getPhoneNum());
+             if(Constants.KM3.equals(yueCheItem.getKm())){
+            	 ret =  yuche(date, amPm,Constants.KM3_HiddenKM, yueCheItem.getPhoneNum());
+             }else if (Constants.KM1.equals(yueCheItem.getKm())){
+            	 ret =  yuche(date, amPm,Constants.KM1_HiddenKM, yueCheItem.getPhoneNum());
+             }else if (Constants.KM_AUTO.equals(yueCheItem.getKm())) {
+            	 ret =  yuche(date, amPm,0, yueCheItem.getPhoneNum());
              }else{
-            	 ret =  yuche(date, amPm,Constants.KM2_HiddenKM,xueYuan.getPhoneNum());
+            	 ret =  yuche(date, amPm,Constants.KM2_HiddenKM, yueCheItem.getPhoneNum());
              }
 
              int  result  = ret.getRet();
              
           if (result == YueChe.BOOK_CAR_SUCCESS){
               isSuccess = true;
-              String info = xueYuan.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+"约车成功";
+              String info = yueCheItem.getUserName() +":"+ret.getData()+":"+date+ YueCheHelper.AMPM.get(amPm)+"约车成功";
               System.out.println(info);
               log.info(info);
-              YueCheHelper.updateYueCheBookInfo(xueYuan.getUserName(),date, XueYuanAccount.BOOK_CAR_SUCCESS, info);
+              YueCheHelper.updateYueCheBookInfo(yueCheItem.getId(), XueYuanAccount.BOOK_CAR_SUCCESS, info);
 
-              xueYuan.setBookSuccess(isSuccess);
+              yueCheItem.setBookSuccess(isSuccess);
           }else if (result == YueChe.NO_CAR){  //无车
               System.out.println(date + YueCheHelper.AMPM.get(amPm)+"无车!");
               break;
@@ -270,10 +347,10 @@ public class ScanYueCheTask extends YueCheTask {
              
           if (result == YueChe.YUE_KAO_SUCCESS){
               isSuccess = true;
-              String info = xueYuan.getUserName() +":"+ret.getData() +"约考成功";
+              String info = yueCheItem.getUserName() +":"+ret.getData() +"约考成功";
               System.out.println(info);
               log.info(info);
-              xueYuan.setBookSuccess(isSuccess);
+              yueCheItem.setBookSuccess(isSuccess);
           }else if (result == YueChe.YUE_KAO_NO_POSITION){  
               System.out.println(date + "可预约人数不足");
               break;

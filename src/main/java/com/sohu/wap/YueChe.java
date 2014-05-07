@@ -135,9 +135,7 @@ public class YueChe {
     private String eventTargetString;
     
 	private String yueKaoInfoDetail;
-	
-	private Map<String, DayCarInfo> yueCheCarInfoMap = new HashMap<String, DayCarInfo>();
-	
+
 	private Map<String, DayKaoShiInfo> kaoShiInfoMap = new HashMap<String, DayKaoShiInfo>();
 	
 	/**
@@ -831,18 +829,30 @@ public class YueChe {
 		return imageCode;
 	}
 	
-	//扫描table ，得到约车信息
-	
-	private   String getAvailableCarInfo(){
-		String yuchePage = null;
-		do{
+
+    /**
+     * 扫描table ，得到约车信息
+     * @return  0 正常     1 错误
+     *
+     */
+	protected    Result< Map<String, DayCarInfo> >   getAvailableCarInfo(){
+
+        Result< Map<String, DayCarInfo> > ret = new Result< Map<String, DayCarInfo>>(0);
+
+        Map<String, DayCarInfo> yueCheCarInfoMap = new HashMap<String, DayCarInfo>();
+
+        String yuchePage = null;
+
+        do{
 			 yuchePage = httpUtil4.getContent(YUCHE_URL);
 			 
 		}while(yuchePage == null);
 		if (yuchePage.equals("/login.aspx")){
-			return "notLogin";
+            ret.setRet(1);
+			return ret;
 		} else if (yuchePage.equals("Internal Server Error")){
-			return "InternalServerError";
+            ret.setRet(1);
+            return ret;
 		}
 	 
 		Document document = Jsoup.parse(yuchePage);
@@ -872,83 +882,10 @@ public class YueChe {
 			yueCheCarInfoMap.put(date,carInfo);
 			
 		}
-		return "getedCarInfo";
-	}
-	/**
-	 * 0 上午可以
-	 * 1 下午可以
-	 * 2 晚上可以
-	 * 
-	 * 3 该日已经约车
-	 * 4 无车
-	 * 5 登录超时
-	 * 6 服务器error InternalServerError
-	 */
-	public Result<String>  canYueChe (String yueCheDateArray ){
-		
-	    Result<String> ret = new Result<String>(4);
-	    
-		String result = getAvailableCarInfo();
-		if(result.equals("InternalServerError")){
-			ret.setRet(6);
-			return ret;
-		}
-		
-		if (result.equals("noLogin")){
-		    ret.setRet(5);
-			return ret;
-		}else{
-//    		3=330211199308031530;0803;20140418@am,pm|20140419@am,pm;pm;byd;km2
-		    String[] array =  yueCheDateArray.split("[|]");
-		    for(String oneItem : array){
-		    	String[] yueCheDateAndAmPm= oneItem.split("[@]");
-		    	String yueCheDate = yueCheDateAndAmPm[0];
-		    	String amPm =  yueCheDateAndAmPm[1];
-		    	DayCarInfo ycCarInfo =  yueCheCarInfoMap.get(yueCheDate);
-	            if (ycCarInfo != null){
-	                String[] timeArray = amPm.split("[,;]");
-	                if (timeArray.length  <  0) {
-	                    timeArray = YueCheHelper.YUCHE_TIME.split("[,;]");
-	                }
-	                //如果今天已经约车了
-	                if ( ycCarInfo.getCarInfo().get("am").equals("已约") ||  ycCarInfo.getCarInfo().get("pm").equals("已约") ||  ycCarInfo.getCarInfo().get("ni").equals("已约")){
-	                    continue;
-	                }
-	                boolean havaCar = false;
-	                for (String amPmStr : timeArray){  //按情况约车
-	                      String info = ycCarInfo.getCarInfo().get(amPmStr);
-	                     if (info.equals("无")){
-	                         
-	                    }else if (info.equals("已约")){
-	                        ret.setRet(3);
-//	                        return ret;
-	                    }else{
-	                        ret.setData(yueCheDate); //设置约车日期
-	                        if (Constants.AM_STR.equals(amPmStr)){
-	                            ret.setRet(0);
-	                            return ret;
-	                        
-	                        }else if (Constants.PM_STR.equals(amPmStr)){
-	                           ret.setRet(1);
-	                           return ret;
-	                        }else{
-	                           ret.setRet(2);
-	                           return ret;
-	                        }
-	                    }
-	                }
-	            }
-		          
-		    }
-		    
-
-		   
-		}
-		 ret.setRet(4);
-         return ret;
+        ret.setData(yueCheCarInfoMap);
+		return ret;
 	}
 
-	
 	
 	private String getAvailableYueKaoInfo(String ks){
 		if (Constants.KS2.equals(ks)){

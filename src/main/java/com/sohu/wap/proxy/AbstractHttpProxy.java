@@ -33,14 +33,14 @@ public abstract class AbstractHttpProxy implements HttpProxy {
 
 	protected static long initialDelay = 0;
 
-	protected static long delay = 20 * 60;
+	protected static long delay = 30 * 60;
 	
 	//seconds
 	 static long long_request_time = 5;
 	    
 	 static long max_request_time = 10;
 	 
-	 static  int  proxy_min_size = 30;
+	 static  int  proxy_min_size = 50;
 	 
 	 protected abstract  void  init();
 

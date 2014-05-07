@@ -4,9 +4,9 @@ baseDirForScriptSelf=$(cd "$(dirname "$0")"; pwd)
 TWITTER_HOME=`dirname $baseDirForScriptSelf`
 TWITTER_LOG_HOME=/home/wjj/log
 
-isUserScan=$1
+isUseScan=$1
 Main_Class="com.sohu.wap.HaijiaNetMain"
-if [  $1 =='scan' ]  then
+if [  "$isUseScan" = 'scan' ];  then
     Main_Class="com.sohu.wap.HaijiaNetScanner"
 fi
 #export LANG=zh_CN.GBK
@@ -24,5 +24,5 @@ CLASSPATH=$TWITTER_HOME/config:$CLASSPATH
 
 export CLASSPATH
 
-java -server -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:NewSize=20m -XX:PermSize=80m  -XX:MaxPermSize=256m -Xss256K -Xms40m -Xmx500m -Dsun.rmi.transport.tcp.responseTimeout=5000 -Dsun.rmi.dgc.server.gcInterval=3600000 -XX:+DisableExplicitGC -verbose:GC -Xloggc:$TWITTER_LOG_HOME/rmi_gc.log com.sohu.wap.HaijiaNetMain   2>&1  
+java -server -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:NewSize=20m -XX:PermSize=80m  -XX:MaxPermSize=256m -Xss256K -Xms40m -Xmx500m -Dsun.rmi.transport.tcp.responseTimeout=5000 -Dsun.rmi.dgc.server.gcInterval=3600000 -XX:+DisableExplicitGC -verbose:GC -Xloggc:$TWITTER_LOG_HOME/rmi_gc.log $Main_Class   2>&1  
 echo "Start Haijia-Yuche SUCCESS!"

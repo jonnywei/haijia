@@ -41,7 +41,7 @@ public class ScanXueYuanInfo {
     
     
   public ConcurrentHashMap  <String , XueYuanAccount> getXuanYuanInfo(){
-	  		reload();
+//	  		reload();
             return xueYuanAccountMap;
     }
  

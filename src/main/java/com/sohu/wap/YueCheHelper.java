@@ -144,6 +144,8 @@ public class YueCheHelper
     
     //网络重试次数
     public static int NET_RETRY_LIMIT = 100;
+
+    public static int LOGIN_RETRY_LIMIT = 1000;
     
     public static  String   PROXY_IP = NetSystemConfigurations.getSystemStringProperty("system.proxy.ip", "127.0.0.1");
     

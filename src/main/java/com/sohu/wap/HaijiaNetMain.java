@@ -39,7 +39,8 @@ public class HaijiaNetMain
    
     public static void main( String[] args ) throws InterruptedException, IOException
     {
-        
+
+        System.out.println("start...");
         
         while(true){
            

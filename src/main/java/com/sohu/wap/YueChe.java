@@ -178,7 +178,9 @@ public class YueChe {
 	
 		boolean isLoginSuccess = false;
 		boolean isPreemptiveImgCodeCreakSuccess =false;
+        int loginRetryCount = 0; //登陆重试次数计数
 		do {
+            loginRetryCount ++;
 			int retry_count =0;
 			//模拟用户行为，一直请求验证码
 			String imageCode = null;
@@ -275,6 +277,10 @@ public class YueChe {
 //				
 			 
 			}
+
+            if (loginRetryCount > YueCheHelper.LOGIN_RETRY_LIMIT){
+                return LONGIN_ERROR;
+            }
 		}while(!isLoginSuccess);
 	
 		return LONGIN_SUCCESS;
